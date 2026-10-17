@@ -131,16 +131,31 @@ export function OutputOutline(_props: Props) {
   const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handleDoubleClick = (event: MouseEvent) => {
+    const handleGutterClick = (event: MouseEvent) => {
       const target = event.target
       if (!(target instanceof Element)) return
-      const answer = target.closest<HTMLElement>(
+      if (target.closest('.dsh-outline-panel,.dsh-outline-toggle') !== null) return
+
+      const chat = findChat()
+      if (chat === null) return
+      const scrollRect = chat.scroll.getBoundingClientRect()
+      if (event.clientX < scrollRect.left || event.clientX > scrollRect.right
+        || event.clientY < scrollRect.top || event.clientY > scrollRect.bottom) return
+
+      const answers = Array.from(chat.flow.querySelectorAll<HTMLElement>(
         '[data-chat-flow-kind="assistant-step"][data-chat-group-part="response"]',
-      )
-      if (answer === null || !isVisible(answer)) return
-      if (target.closest(
-        'button,a,input,textarea,select,summary,pre,code,[contenteditable="true"],[role="button"]',
-      ) !== null) return
+      )).filter(isVisible)
+      const answer = answers.find(element => {
+        const rect = element.getBoundingClientRect()
+        return event.clientY >= rect.top && event.clientY <= rect.bottom
+      })
+      if (answer === undefined) return
+
+      const rect = answer.getBoundingClientRect()
+      const gutterInset = 12
+      const inLeftGutter = event.clientX <= rect.left - gutterInset
+      const inRightGutter = event.clientX >= rect.right + gutterInset
+      if (!inLeftGutter && !inRightGutter) return
 
       setVisible(current => {
         const next = !current
@@ -149,8 +164,8 @@ export function OutputOutline(_props: Props) {
       })
     }
 
-    document.addEventListener('dblclick', handleDoubleClick, true)
-    return () => document.removeEventListener('dblclick', handleDoubleClick, true)
+    document.addEventListener('click', handleGutterClick, true)
+    return () => document.removeEventListener('click', handleGutterClick, true)
   }, [])
 
   useEffect(() => {
