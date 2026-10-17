@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "会话大纲",
+    "description": "在 DSH Web 右侧固定展示历史轮次和 Markdown 标题，并支持快速定位。"
+  }
+}
