@@ -11,7 +11,8 @@ A DeepSeek Harness Web client plugin that adds a fixed, Pi Web-style outline for
 - Highlights the turn currently being read.
 - Clicks navigate to a historical prompt, answer, or heading.
 - The panel stays fixed while the transcript scrolls.
-- The panel can be hidden and restored; the preference is stored in the browser.
+- Hover or focus the **Outline** button to preview the panel; leaving the panel or moving focus outside hides it.
+- Clicking or double-clicking the transcript never toggles the panel, so native text selection remains unchanged.
 - Uses DSH semantic design tokens and mounts through the additive `shell.overlay` slot.
 - Does not patch or replace `ui-chat`.
 

@@ -25,8 +25,8 @@ interface TurnItem {
   answers: AnswerItem[]
 }
 
-const VISIBLE_KEY = 'dsh.outputOutline.visible'
 const STYLE_ID = '@llq/dsh-output-outline'
+const PREVIEW_HIDE_DELAY = 180
 
 function compactText(value: string, maximum = 120): string {
   const text = value.replace(/\s+/gu, ' ').trim()
@@ -124,49 +124,31 @@ function labels(): { title: string; show: string; hide: string; empty: string } 
 }
 
 export function OutputOutline(_props: Props) {
-  const [visible, setVisible] = useState(() => localStorage.getItem(VISIBLE_KEY) !== 'false')
+  const [visible, setVisible] = useState(false)
   const [turns, setTurns] = useState<TurnItem[]>([])
   const [activeTurn, setActiveTurn] = useState<string | null>(null)
   const [chatPresent, setChatPresent] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    const handleGutterClick = (event: MouseEvent) => {
-      const target = event.target
-      if (!(target instanceof Element)) return
-      if (target.closest('.dsh-outline-panel,.dsh-outline-toggle') !== null) return
+  const cancelHide = () => {
+    if (hideTimerRef.current === null) return
+    clearTimeout(hideTimerRef.current)
+    hideTimerRef.current = null
+  }
+  const showPreview = () => {
+    cancelHide()
+    setVisible(true)
+  }
+  const scheduleHide = () => {
+    cancelHide()
+    hideTimerRef.current = setTimeout(() => {
+      hideTimerRef.current = null
+      setVisible(false)
+    }, PREVIEW_HIDE_DELAY)
+  }
 
-      const chat = findChat()
-      if (chat === null) return
-      const scrollRect = chat.scroll.getBoundingClientRect()
-      if (event.clientX < scrollRect.left || event.clientX > scrollRect.right
-        || event.clientY < scrollRect.top || event.clientY > scrollRect.bottom) return
-
-      const answers = Array.from(chat.flow.querySelectorAll<HTMLElement>(
-        '[data-chat-flow-kind="assistant-step"][data-chat-group-part="response"]',
-      )).filter(isVisible)
-      const answer = answers.find(element => {
-        const rect = element.getBoundingClientRect()
-        return event.clientY >= rect.top && event.clientY <= rect.bottom
-      })
-      if (answer === undefined) return
-
-      const rect = answer.getBoundingClientRect()
-      const gutterInset = 12
-      const inLeftGutter = event.clientX <= rect.left - gutterInset
-      const inRightGutter = event.clientX >= rect.right + gutterInset
-      if (!inLeftGutter && !inRightGutter) return
-
-      setVisible(current => {
-        const next = !current
-        localStorage.setItem(VISIBLE_KEY, String(next))
-        return next
-      })
-    }
-
-    document.addEventListener('click', handleGutterClick, true)
-    return () => document.removeEventListener('click', handleGutterClick, true)
-  }, [])
+  useEffect(() => () => cancelHide(), [])
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -218,7 +200,7 @@ export function OutputOutline(_props: Props) {
     const observer = new MutationObserver(mutations => {
       const changedOutsideOutline = mutations.some(mutation => {
         const element = mutation.target instanceof Element ? mutation.target : mutation.target.parentElement
-        return element?.closest('.dsh-outline-panel,.dsh-outline-toggle') === null
+        return element?.closest('.dsh-outline-host') === null
       })
       if (changedOutsideOutline) schedule()
     })
@@ -240,48 +222,58 @@ export function OutputOutline(_props: Props) {
 
   if (!chatPresent) return null
   const copy = labels()
-  const changeVisible = (next: boolean) => {
-    setVisible(next)
-    localStorage.setItem(VISIBLE_KEY, String(next))
-  }
-
-  if (!visible) {
-    return <button className="dsh-outline-toggle" type="button" onClick={() => changeVisible(true)}>{copy.title}</button>
-  }
 
   return (
-    <aside className="dsh-outline-panel" aria-label={copy.title}>
-      <header className="dsh-outline-header">
-        <span className="dsh-outline-title"><span aria-hidden="true">☷</span>{copy.title}</span>
-        <button type="button" className="dsh-outline-close" aria-label={copy.hide} onClick={() => changeVisible(false)}>×</button>
-      </header>
-      {turns.length === 0 ? <div className="dsh-outline-empty">{copy.empty}</div> : (
-        <div ref={listRef} className="dsh-outline-list">
-          {turns.map(turn => (
-            <section key={turn.key} className="dsh-outline-turn" data-active={turn.key === activeTurn || undefined} data-outline-turn={turn.key}>
-              <span className="dsh-outline-number">{turn.number}</span>
-              <div className="dsh-outline-content">
-                <button type="button" className="dsh-outline-user" title={turn.userText}
-                  onClick={() => scrollToTarget(turn.userId ?? turn.answers[0]?.id ?? null)}>{turn.userText}</button>
-                {turn.answers.map(answer => (
-                  <div className="dsh-outline-answer" key={answer.id}>
-                    <button type="button" className="dsh-outline-answer-jump" onClick={() => scrollToTarget(answer.id)}>A</button>
-                    {answer.headings.length > 0 ? answer.headings.map(heading => (
-                      <button key={heading.id} type="button" className="dsh-outline-heading" data-level={heading.level}
-                        title={heading.text} onClick={() => scrollToTarget(heading.id)}>{heading.text}</button>
-                    )) : (
-                      <button type="button" className="dsh-outline-preview" title={answer.preview}
-                        onClick={() => scrollToTarget(answer.id)}>{answer.preview || copy.empty}</button>
-                    )}
+    <div
+      className="dsh-outline-host"
+      onMouseEnter={showPreview}
+      onMouseLeave={scheduleHide}
+      onFocusCapture={showPreview}
+      onBlurCapture={event => {
+        if (!event.currentTarget.contains(event.relatedTarget)) scheduleHide()
+      }}
+    >
+      <button
+        className="dsh-outline-toggle"
+        type="button"
+        aria-label={copy.show}
+        aria-expanded={visible}
+      >
+        {copy.title}
+      </button>
+      {visible && (
+        <aside className="dsh-outline-panel" aria-label={copy.title}>
+          <header className="dsh-outline-header">
+            <span className="dsh-outline-title"><span aria-hidden="true">☷</span>{copy.title}</span>
+          </header>
+          {turns.length === 0 ? <div className="dsh-outline-empty">{copy.empty}</div> : (
+            <div ref={listRef} className="dsh-outline-list">
+              {turns.map(turn => (
+                <section key={turn.key} className="dsh-outline-turn" data-active={turn.key === activeTurn || undefined} data-outline-turn={turn.key}>
+                  <span className="dsh-outline-number">{turn.number}</span>
+                  <div className="dsh-outline-content">
+                    <button type="button" className="dsh-outline-user" title={turn.userText}
+                      onClick={() => scrollToTarget(turn.userId ?? turn.answers[0]?.id ?? null)}>{turn.userText}</button>
+                    {turn.answers.map(answer => (
+                      <div className="dsh-outline-answer" key={answer.id}>
+                        <button type="button" className="dsh-outline-answer-jump" onClick={() => scrollToTarget(answer.id)}>A</button>
+                        {answer.headings.length > 0 ? answer.headings.map(heading => (
+                          <button key={heading.id} type="button" className="dsh-outline-heading" data-level={heading.level}
+                            title={heading.text} onClick={() => scrollToTarget(heading.id)}>{heading.text}</button>
+                        )) : (
+                          <button type="button" className="dsh-outline-preview" title={answer.preview}
+                            onClick={() => scrollToTarget(answer.id)}>{answer.preview || copy.empty}</button>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+                </section>
+              ))}
+            </div>
+          )}
+        </aside>
       )}
-      <button type="button" className="dsh-outline-edge" aria-label={copy.hide} onClick={() => changeVisible(false)}>‹</button>
-    </aside>
+    </div>
   )
 }
 
