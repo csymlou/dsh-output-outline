@@ -131,6 +131,29 @@ export function OutputOutline(_props: Props) {
   const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    const handleDoubleClick = (event: MouseEvent) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      const answer = target.closest<HTMLElement>(
+        '[data-chat-flow-kind="assistant-step"][data-chat-group-part="response"]',
+      )
+      if (answer === null || !isVisible(answer)) return
+      if (target.closest(
+        'button,a,input,textarea,select,summary,pre,code,[contenteditable="true"],[role="button"]',
+      ) !== null) return
+
+      setVisible(current => {
+        const next = !current
+        localStorage.setItem(VISIBLE_KEY, String(next))
+        return next
+      })
+    }
+
+    document.addEventListener('dblclick', handleDoubleClick, true)
+    return () => document.removeEventListener('dblclick', handleDoubleClick, true)
+  }, [])
+
+  useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
     let scroll: HTMLElement | null = null
 
