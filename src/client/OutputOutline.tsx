@@ -114,7 +114,7 @@ function findChat(): { flow: HTMLElement; scroll: HTMLElement } | null {
 
 function scrollToTarget(id: string | null): void {
   if (id === null) return
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function labels(): { title: string; show: string; hide: string; empty: string } {
