@@ -4,11 +4,11 @@
   "description": "A DeepSeek Harness Web plugin that adds a Pi Web-style historical conversation outline.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/csymlou/dsh-output-outline-plugin.git"
+    "url": "git+https://github.com/csymlou/dsh-output-outline.git"
   },
-  "homepage": "https://github.com/csymlou/dsh-output-outline-plugin#readme",
+  "homepage": "https://github.com/csymlou/dsh-output-outline#readme",
   "bugs": {
-    "url": "https://github.com/csymlou/dsh-output-outline-plugin/issues"
+    "url": "https://github.com/csymlou/dsh-output-outline/issues"
   },
   "keywords": ["dsh", "deepseek-harness", "plugin", "outline", "toc", "markdown", "navigation"],
   "type": "module",
@@ -41,7 +41,8 @@
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run build",
-    "pack:dry": "npm pack --dry-run"
+    "pack:dry": "npm pack --dry-run",
+    "prepublishOnly": "npm run check"
   },
   "dsh": {
     "bundle": {
@@ -71,7 +72,12 @@
     "typescript": "6.0.3"
   },
   "engines": {
-    "node": ">=22.19"
+    "node": ">=22.19",
+    "dsh": ">=0.2.0-rc.2 <0.3.0-0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT"
 }
