@@ -1,7 +1,16 @@
 {
-  "name": "@llq/dsh-output-outline",
+  "name": "dsh-output-outline-plugin",
   "version": "0.1.0",
   "description": "A DeepSeek Harness Web plugin that adds a Pi Web-style historical conversation outline.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/csymlou/dsh-output-outline-plugin.git"
+  },
+  "homepage": "https://github.com/csymlou/dsh-output-outline-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/csymlou/dsh-output-outline-plugin/issues"
+  },
+  "keywords": ["dsh", "deepseek-harness", "plugin", "outline", "toc", "markdown", "navigation"],
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",

@@ -1,3 +1,3 @@
 - insert:
     - id: output-outline
-      name: '@llq/dsh-output-outline'
+      name: dsh-output-outline-plugin

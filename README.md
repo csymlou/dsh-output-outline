@@ -56,15 +56,21 @@ lib/client.js  Browser client bundle
 Install the absolute repository path from **Plugins → Add plugin**, or use the CLI:
 
 ```bash
-dsh plugin add /absolute/path/to/dsh-output-outline-plugin
+dsh plugin --profile web add /absolute/path/to/dsh-output-outline-plugin
 ```
 
 Then enable the installed **Conversation Outline** bundle in the Plugins page. Restart DSH if the running profile does not have HMR.
 
+After publication, install it by package name:
+
+```bash
+dsh plugin --profile web add dsh-output-outline-plugin
+```
+
 For direct profile composition, add its bundle patch to the profile according to your DSH deployment's plugin-manager workflow. The package exports:
 
 ```text
-@llq/dsh-output-outline/cordis.patch.yml
+dsh-output-outline-plugin/cordis.patch.yml
 ```
 
 ## Architecture

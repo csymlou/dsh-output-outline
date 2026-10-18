@@ -40,6 +40,6 @@ await build({
     '@deepseek-ai/dsh-client-ui-layout/client',
     '@deepseek-ai/dsh-client-ui-renderer/client',
   ],
-  banner: { js: 'window.__ModuleLoader__.load({ id: "@llq/dsh-output-outline", factory: (require) => { var module = { exports: {} }; var exports = module.exports;' },
+  banner: { js: 'window.__ModuleLoader__.load({ id: "dsh-output-outline-plugin", factory: (require) => { var module = { exports: {} }; var exports = module.exports;' },
   footer: { js: 'return module.exports; } });' },
 })

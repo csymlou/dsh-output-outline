@@ -25,7 +25,7 @@ interface TurnItem {
   answers: AnswerItem[]
 }
 
-const STYLE_ID = '@llq/dsh-output-outline'
+const STYLE_ID = 'dsh-output-outline-plugin'
 const PREVIEW_HIDE_DELAY = 180
 
 function compactText(value: string, maximum = 120): string {
